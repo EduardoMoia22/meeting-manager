@@ -7,9 +7,7 @@ import com.eduardo.meeting.mappers.MeetingMapper;
 import com.eduardo.meeting.repositories.MeetingRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class MeetingService {
@@ -23,25 +21,43 @@ public class MeetingService {
     }
 
     public Meeting save(MeetingRequestDTO meeting) throws Exception {
-        Optional<User> meetingOrganizer = this.userService.findUserById(meeting.organizerId());
-
-        if (meetingOrganizer.isEmpty()) {
-            throw new Exception("User not found.");
-        }
-
+        User meetingOrganizer = this.userService.findUserById(meeting.organizerId());
         Meeting meetingEntity = MeetingMapper.requestToEntity(meeting);
-        meetingEntity.setMeetingOrganizer(meetingOrganizer.get());
-
-        return this.meetingRepository.save(meetingEntity);
+        meetingEntity.setMeetingOrganizer(meetingOrganizer);
+        this.meetingRepository.save(meetingEntity);
+        this.addParticipants(meeting.participantsIds(), meetingEntity.getId());
+        return meetingEntity;
     }
 
     public List<Meeting> findAllByOrganizerId(UUID organizerId) throws Exception {
-        Optional<User> meetingOrganizer = this.userService.findUserById(organizerId);
+        User meetingOrganizer = this.userService.findUserById(organizerId);
 
-        if (meetingOrganizer.isEmpty()) {
-            throw new Exception("User not found.");
+        return this.meetingRepository.findAllByMeetingOrganizer(meetingOrganizer);
+    }
+
+    public Meeting findById(UUID meetingId) throws Exception {
+        Optional<Meeting> meeting = this.meetingRepository.findById(meetingId);
+
+        if (meeting.isEmpty()) {
+            throw new Exception("Meeting not found");
         }
 
-        return this.meetingRepository.findAllByMeetingOrganizer(meetingOrganizer.get());
+        return meeting.get();
+    }
+
+    public void addParticipants(List<UUID> participantsIds, UUID meetingId) throws Exception {
+        Meeting meeting = this.findById(meetingId);
+
+        for (UUID id : participantsIds) {
+            if (meeting.getParticipants().stream().noneMatch(user -> user.getId().equals(id))) {
+                try {
+                    User user = userService.findUserById(id);
+                    meeting.addParticipant(user);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to find user with ID: " + id, e);
+                }
+            }
+        }
+        this.meetingRepository.save(meeting);
     }
 }

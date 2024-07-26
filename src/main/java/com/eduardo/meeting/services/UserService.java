@@ -6,6 +6,7 @@ import com.eduardo.meeting.mappers.UserMapper;
 import com.eduardo.meeting.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,7 +22,17 @@ public class UserService {
         return this.userRepository.save(UserMapper.requestToEntity(user));
     }
 
-    public Optional<User> findUserById(UUID id) {
-        return this.userRepository.findById(id);
+    public User findUserById(UUID id) throws Exception {
+        Optional<User> user = this.userRepository.findById(id);
+
+        if (user.isEmpty()) {
+            throw new Exception("User not found.");
+        }
+
+        return user.get();
+    }
+
+    public List<User> findAllUsers(){
+        return this.userRepository.findAll();
     }
 }

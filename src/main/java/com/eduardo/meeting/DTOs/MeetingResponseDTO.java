@@ -1,6 +1,7 @@
 package com.eduardo.meeting.DTOs;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record MeetingResponseDTO(UUID id,
@@ -8,5 +9,6 @@ public record MeetingResponseDTO(UUID id,
                                  String description,
                                  LocalDateTime startTime,
                                  LocalDateTime notificationTime,
-                                 UserResponseDTO meetingOrganizer) {
+                                 UserResponseDTO meetingOrganizer,
+                                 List<UserResponseDTO> participants) {
 }

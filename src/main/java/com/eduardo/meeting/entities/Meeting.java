@@ -3,6 +3,8 @@ package com.eduardo.meeting.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -19,6 +21,14 @@ public class Meeting {
     @ManyToOne
     private User meetingOrganizer;
 
+    @ManyToMany
+    @JoinTable(
+            name = "tb_meeting_participants",
+            joinColumns = @JoinColumn(name = "meeting_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> participants = new ArrayList<>();;
+
     public Meeting() {
     }
 
@@ -27,6 +37,12 @@ public class Meeting {
         this.description = description;
         this.startTime = startTime;
         this.notificationTime = notificationTime;
+    }
+
+    public void addParticipant(User participant) {
+        if (participant != null && !this.participants.contains(participant)) {
+            this.participants.add(participant);
+        }
     }
 
     public UUID getId() {
@@ -75,5 +91,13 @@ public class Meeting {
 
     public void setMeetingOrganizer(User meetingOrganizer) {
         this.meetingOrganizer = meetingOrganizer;
+    }
+
+    public List<User> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<User> participants) {
+        this.participants = participants;
     }
 }
